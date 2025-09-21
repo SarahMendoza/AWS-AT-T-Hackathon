@@ -112,7 +112,7 @@ def get_predicted_outage_data():
 @st.cache_data(ttl=300)
 def get_deployment_notes(cell_tower):
     try:
-        response = requests.get(f"{BACKEND_URL}/api/deployment-notes", params={'tower_id': cell_tower['tower_id']}, timeout=10)
+        response = requests.get(f"{BACKEND_URL}/api/deployment-notes", params={'tower_id': cell_tower['tower_id']}, timeout=30)
         if response.status_code == 200:
             data = response.json()
             if data['success']:
@@ -305,6 +305,7 @@ def render_chat_interface(notes):
 if st.session_state.get('show_notes', False) and st.session_state.selected_tower is not None:
     notes = get_deployment_notes(st.session_state.selected_tower)
     render_chat_interface(notes)
+    # render_chat_interface('')
 
 
 

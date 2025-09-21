@@ -74,9 +74,24 @@ def get_predicted_outages():
 @app.route('/api/deployment-notes', methods=['GET'])
 def get_deployment_notes():
     try:
-        tower_id = request.args.get('tower_id', default=None, type=str)
         session_id = str(uuid.uuid4())
-        prompt_text = f"tower_id: {tower_id}"
+        
+        tower_id = request.args.get('tower_id', default=None, type=str)
+        
+        tower_item = cell_towers_table.query(
+            KeyConditionExpression=Key('tower_id').eq(tower_id)
+        )['Items'][0]
+        
+        
+        prompt_text = ""
+        prompt_text += f"Tower ID: {tower_item['tower_id']}<br>"
+        prompt_text += f"Status: {tower_item['status']}<br>"
+        prompt_text += f"RSRP: {float(tower_item['signal_strength']):.2f} dBm<br>"
+        prompt_text += f"Bandwidth: {tower_item['bandwidth']} MHz<br>"
+        prompt_text += f"Technology: {tower_item['technology']}<br>"
+        prompt_text += f"Coverage: {float(tower_item['coverage_radius']):.2f} mi<br>"
+        prompt_text += f"Lon: {float(tower_item['longitude']):.4f}<br>"
+        prompt_text += f"Lat: {float(tower_item['latitude']):.4f}<br>"
         
         agent_response = bedrock_agent_runtime_client.invoke_agent(
             agentId=notes_agent_id,
