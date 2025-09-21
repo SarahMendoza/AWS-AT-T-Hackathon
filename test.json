@@ -1,0 +1,100 @@
+{
+  "@context": [
+    "string"
+  ],
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "@context": [
+        "string"
+      ],
+      "id": "string",
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0,
+          0
+        ],
+        "bbox": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "properties": {
+        "id": "string",
+        "areaDesc": "string",
+        "geocode": {
+          "UGC": [
+            "ARC221"
+          ],
+          "SAME": [
+            "381977"
+          ]
+        },
+        "affectedZones": [
+          "string"
+        ],
+        "references": [
+          {
+            "@id": "string",
+            "identifier": "string",
+            "sender": "string",
+            "sent": "2025-09-20T20:11:05.452Z"
+          }
+        ],
+        "sent": "2025-09-20T20:11:05.452Z",
+        "effective": "2025-09-20T20:11:05.452Z",
+        "onset": "2025-09-20T20:11:05.452Z",
+        "expires": "2025-09-20T20:11:05.452Z",
+        "ends": "2025-09-20T20:11:05.452Z",
+        "status": "Actual",
+        "messageType": "Alert",
+        "category": "Met",
+        "severity": "Extreme",
+        "certainty": "Observed",
+        "urgency": "Immediate",
+        "event": "string",
+        "sender": "string",
+        "senderName": "string",
+        "headline": "string",
+        "description": "string",
+        "instruction": "string",
+        "response": "Shelter",
+        "parameters": {
+          "additionalProp1": [
+            "string"
+          ],
+          "additionalProp2": [
+            "string"
+          ],
+          "additionalProp3": [
+            "string"
+          ]
+        },
+        "scope": "Public",
+        "code": "string",
+        "language": "string",
+        "web": "string",
+        "eventCode": {
+          "additionalProp1": [
+            "string"
+          ],
+          "additionalProp2": [
+            "string"
+          ],
+          "additionalProp3": [
+            "string"
+          ]
+        }
+      }
+    }
+  ],
+  "title": "string",
+  "updated": "2025-09-20T20:11:05.452Z",
+  "pagination": {
+    "next": "string"
+  }
+}
