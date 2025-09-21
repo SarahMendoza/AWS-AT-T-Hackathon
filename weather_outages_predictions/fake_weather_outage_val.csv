@@ -1,0 +1,21 @@
+event_type,area,reason,severity,certainty,response,geometry_coordinates,outage
+Severe Thunderstorm Warning,Harris County,"Severe storms with large hail and damaging winds.",Severe,Observed,Evacuate,"[[[-95.36,29.76],[-95.31,29.76],[-95.31,29.71],[-95.36,29.71],[-95.36,29.76]]]",1
+Small Craft Advisory,Galveston County,"South winds 15-25 kt creating hazardous conditions.",Minor,Observed,Prepare,"[[[-94.9,29.3],[-94.85,29.3],[-94.85,29.25],[-94.9,29.25],[-94.9,29.3]]]",0
+Flood Watch,Travis County,"Flooding possible due to heavy rains.",Moderate,Possible,Prepare,"[[[-97.75,30.3],[-97.7,30.3],[-97.7,30.25],[-97.75,30.25],[-97.75,30.3]]]",0
+Tornado Warning,Smith County,"Tornado near Tyler. Immediate shelter required.",Extreme,Observed,Evacuate,"[[[-95.3,32.3],[-95.25,32.3],[-95.25,32.25],[-95.3,32.25],[-95.3,32.3]]]",1
+Special Weather Statement,Bexar County,"Thunderstorms with gusty winds and lightning.",Moderate,Likely,Prepare,"[[[-98.5,29.4],[-98.45,29.4],[-98.45,29.35],[-98.5,29.35],[-98.5,29.4]]]",0
+Ice Storm Warning,Randall County,"Freezing rain causing hazardous travel.",Severe,Observed,Shelter,"[[[-101.95,35.2],[-101.9,35.2],[-101.9,35.15],[-101.95,35.15],[-101.95,35.2]]]",1
+Severe Thunderstorm Warning,Dallas County,"Severe storms with damaging winds and hail.",Severe,Likely,Evacuate,"[[[-96.8,32.9],[-96.75,32.9],[-96.75,32.85],[-96.8,32.85],[-96.8,32.9]]]",1
+Small Craft Advisory,Jefferson County,"East winds 20-30 kt creating hazardous boating conditions.",Minor,Observed,Prepare,"[[[-93.95,29.7],[-93.9,29.7],[-93.9,29.65],[-93.95,29.65],[-93.95,29.7]]]",0
+Flood Advisory,Hunt County,"Minor flooding in low-lying areas expected.",Minor,Possible,Prepare,"[[[-96.1,33.1],[-96.05,33.1],[-96.05,33.05],[-96.1,33.05],[-96.1,33.1]]]",0
+Tornado Warning,Hidalgo County,"Tornado on ground near McAllen.",Extreme,Observed,Evacuate,"[[[-98.23,26.22],[-98.18,26.22],[-98.18,26.18],[-98.23,26.18],[-98.23,26.22]]]",1
+Special Weather Statement,Williamson County,"Thunderstorms with gusty winds.",Moderate,Likely,Prepare,"[[[-97.7,30.6],[-97.65,30.6],[-97.65,30.55],[-97.7,30.55],[-97.7,30.6]]]",0
+Severe Thunderstorm Warning,Taylor County,"Severe storms producing damaging winds.",Severe,Observed,Evacuate,"[[[-99.4,32.5],[-99.35,32.5],[-99.35,32.45],[-99.4,32.45],[-99.4,32.5]]]",1
+Flood Watch,Denton County,"Flooding possible in low-lying areas.",Moderate,Possible,Prepare,"[[[-97.1,33.25],[-97.05,33.25],[-97.05,33.2],[-97.1,33.2],[-97.1,33.25]]]",0
+Small Craft Advisory,Matagorda County,"South winds creating hazardous boating conditions.",Minor,Observed,Prepare,"[[[-95.96,28.7],[-95.91,28.7],[-95.91,28.65],[-95.96,28.65],[-95.96,28.7]]]",0
+Tornado Warning,Tarrant County,"Tornado detected near Fort Worth.",Extreme,Observed,Evacuate,"[[[-97.3,32.8],[-97.25,32.8],[-97.25,32.75],[-97.3,32.75],[-97.3,32.8]]]",1
+Special Weather Statement,McLennan County,"Thunderstorms with lightning and gusty winds.",Moderate,Likely,Prepare,"[[[-97.15,31.55],[-97.1,31.55],[-97.1,31.5],[-97.15,31.5],[-97.15,31.55]]]",0
+Severe Thunderstorm Warning,Hays County,"Severe storms with hail and damaging winds.",Severe,Observed,Evacuate,"[[[-98.05,29.9],[-98,29.9],[-98,29.85],[-98.05,29.85],[-98.05,29.9]]]",1
+Small Craft Advisory,Chambers County,"Winds 15 to 25 kt causing hazardous conditions for small craft.",Minor,Observed,Prepare,"[[[-94.7,29.7],[-94.65,29.7],[-94.65,29.65],[-94.7,29.65],[-94.7,29.7]]]",0
+Ice Storm Warning,Armstrong County,"Ice accumulation causing hazardous travel.",Severe,Observed,Shelter,"[[[-101.4,35.25],[-101.35,35.25],[-101.35,35.2],[-101.4,35.2],[-101.4,35.25]]]",1
+Tornado Warning,Johnson County,"Tornado near Cleburne. Immediate shelter required.",Extreme,Observed,Evacuate,"[[[-97.3,32.3],[-97.25,32.3],[-97.25,32.25],[-97.3,32.25],[-97.3,32.3]]]",1
