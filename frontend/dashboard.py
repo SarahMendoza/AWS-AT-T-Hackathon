@@ -74,7 +74,7 @@ def check_backend_health():
         return False
 
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=300)
 def get_tower_data():
     try:
         response = requests.get(f"{BACKEND_URL}/api/towers", timeout=10)
@@ -87,7 +87,7 @@ def get_tower_data():
         st.error(f"Error fetching tower data: {str(e)}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=300)
 def get_predicted_outage_data():
     try:
         response = requests.get(f"{BACKEND_URL}/api/predicted-outages", timeout=10)
@@ -100,9 +100,98 @@ def get_predicted_outage_data():
         st.error(f"Error fetching predicted outage data: {str(e)}")
         return pd.DataFrame()
 
+@st.cache_data(ttl=300)
+def get_deployment_instructions_for_cell(cell_tower):
+    try:
+        response = requests.get(f"{BACKEND_URL}/api/instructions-cell", params={'tower_id': cell_tower['tower_id']}, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                return data['data']
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error fetching deployment instructions: {str(e)}")
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300)
+def get_deployment_instructions_for_outage(outage):
+    try:
+        # TODO: fix parameters with some way to identify the outage
+        response = requests.get(f"{BACKEND_URL}/api/instructions-outage", params={'outage_id': 0}, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                return data['data']
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error fetching deployment instructions: {str(e)}")
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300)
+def get_assistant_response_for_cell(user_input, cell_tower):
+    try:
+        response = requests.get(
+            f"{BACKEND_URL}/api/assistant-cell", 
+            params={
+                'user_input': user_input, 
+                'tower_id': cell_tower['tower_id']
+            }, 
+            timeout=10
+        )
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                return data['data']
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error fetching assistant response: {str(e)}")
+        return pd.DataFrame()
+
+@st.cache_data(ttl=300)
+def get_assistant_response_for_outage(user_input, outage):
+    try:
+        # TODO: fix parameters with some way to identify the outage
+        response = requests.get(
+            f"{BACKEND_URL}/api/assistant-outage", 
+            params={
+                'user_input': user_input, 
+                'outage_id': 0
+            }, 
+            timeout=10
+        )
+        if response.status_code == 200:
+            data = response.json()
+            if data['success']:
+                return data['data']
+        return pd.DataFrame()
+    except Exception as e:
+        st.error(f"Error fetching assistant response: {str(e)}")
+        return pd.DataFrame()
+
 # Initialize session state
 if 'backend_connected' not in st.session_state:
     st.session_state.backend_connected = False
+
+if 'selected_tower' not in st.session_state:
+    st.session_state.selected_tower = None
+
+if 'selected_outage' not in st.session_state:
+    st.session_state.selected_outage = None
+
+if 'chat_area' not in st.session_state:
+    st.session_state.chat_area = None
+
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
+
+if 'current_instruction_type' not in st.session_state:
+    st.session_state.current_instruction_type = None
+
+if 'show_instructions_cell' not in st.session_state:
+    st.session_state.show_instructions_cell = False
+
+if 'show_instructions_outage' not in st.session_state:
+    st.session_state.show_instructions_outage = False
 
 # Check backend connection
 backend_healthy = check_backend_health()
@@ -125,260 +214,113 @@ with st.sidebar:
         )
         st.error(f"Cannot connect to backend at {BACKEND_URL}")
 
-
-st.markdown("### Cell and Predicted Outages Map")
-
 tower_data = get_tower_data()
 outage_data = get_predicted_outage_data()
+
+st.markdown("### Outages Map")
 m = create_folium_map(tower_data, outage_data)
 st_data = st_folium(m, width=1000)
 
-
-#     if st.session_state.backend_connected:
-#         # Urgent Areas Information
-#         st.markdown("### 🚨 Urgent Weather Areas")
-#         alert_areas = get_alert_areas()
-        
-#         if alert_areas:
-#             st.write(f"**{len(alert_areas)} active alerts**")
-#             for area in alert_areas[:3]:  # Show first 3 alerts
-#                 with st.expander(f"⚠️ {area['event']}", expanded=False):
-#                     st.write(f"**Severity:** {area.get('severity', 'Unknown')}")
-#                     st.write(f"**Urgency:** {area.get('urgency', 'Unknown')}")
-#                     st.write(f"**Effective:** {area.get('effective', 'Unknown')}")
-#                     st.write(f"**Expires:** {area.get('expires', 'Unknown')}")
-                    
-#             if len(alert_areas) > 3:
-#                 st.caption(f"... and {len(alert_areas) - 3} more alerts")
-#         else:
-#             st.success("No urgent weather alerts")
-        
-#         # Filters
-#         st.markdown("### 🔍 Filters")
-        
-#         # Get filter options from backend
-#         tower_options = get_tower_options()
-        
-#         if tower_options:
-#             # Technology filter
-#             tech_options = ['All'] + tower_options.get('technologies', [])
-#             selected_tech = st.selectbox("Technology", tech_options)
-            
-#             # Status filter
-#             status_options = ['All'] + tower_options.get('statuses', [])
-#             selected_status = st.selectbox("Status", status_options)
-            
-#             # Signal strength filter
-#             signal_range = tower_options.get('signal_range', {'min': -120, 'max': -60})
-#             min_signal, max_signal = st.slider(
-#                 "Signal Strength Range (dBm)",
-#                 float(signal_range['min']),
-#                 float(signal_range['max']),
-#                 (float(signal_range['min']), float(signal_range['max']))
-#             )
-            
-#             # Number of towers
-#             num_towers = st.slider("Number of Towers", 10, 200, 50)
-#         else:
-#             st.error("Unable to load filter options")
-#             selected_tech = 'All'
-#             selected_status = 'All'
-#             min_signal, max_signal = -120, -60
-#             num_towers = 50
-        
-#         # Auto-refresh toggle
-#         auto_refresh = st.checkbox("Auto-refresh (30s)", value=False)
-        
-#         # Manual refresh button
-#         if st.button("🔄 Refresh Data"):
-#             st.cache_data.clear()
-#             st.rerun()
+if st_data["last_object_clicked"]:
+    lat, lon = st_data["last_object_clicked"]['lat'], st_data["last_object_clicked"]['lng']
     
-#     else:
-#         st.warning("Connect to backend to access dashboard features")
-
-# # Auto-refresh logic
-# if st.session_state.backend_connected and auto_refresh:
-#     time.sleep(30)
-#     st.rerun()
-
-# # Main dashboard
-# st.markdown('<h1 class="main-header">FirstNet Cell Tower Deployment Dashboard</h1>', unsafe_allow_html=True)
-
-# if not st.session_state.backend_connected:
-#     st.error("Dashboard unavailable - please check backend connection")
-#     st.stop()
-
-# # Get data from backend
-# df_towers, total_count, filtered_count = get_tower_data(
-#     selected_tech, selected_status, min_signal, max_signal, num_towers
-# )
-# network_metrics = get_network_metrics(num_towers)
-# alerts = get_alerts(num_towers)
-# alert_areas = get_alert_areas()
-
-# # Key metrics row
-# if network_metrics:
-#     col1, col2, col3, col4, col5 = st.columns(5)
-#     with col1:
-#         st.metric(
-#             "Total Towers", 
-#             network_metrics.get('total_towers', 0),
-#             delta=f"{filtered_count} filtered"
-#         )
-#     with col2:
-#         availability = network_metrics.get('network_availability', 0)
-#         st.metric(
-#             "Network Availability", 
-#             f"{availability:.1f}%",
-#             delta=f"{'🟢' if availability > 95 else '🟡' if availability > 90 else '🔴'}"
-#         )
-#     with col3:
-#         st.metric(
-#             "Avg Signal Strength", 
-#             f"{network_metrics.get('avg_signal_strength', 0):.1f} dBm"
-#         )
-#     with col4:
-#         st.metric(
-#             "Total Coverage", 
-#             f"{network_metrics.get('total_coverage_area', 0):.1f} km²"
-#         )
-#     with col5:
-#         st.metric(
-#             "Connected Devices", 
-#             f"{network_metrics.get('total_connected_devices', 0):,}"
-#         )
-# else:
-#     st.error("Unable to load network metrics")
-
-# # Map and charts row
-# col1, col2 = st.columns([3, 1])
-
-# if alert_areas:
-#     col1, col2 = st.columns([2, 1])
+    # find the corresponding predicted outage or cell tower using lat lon
+    cell_tower_matches = tower_data[
+        (tower_data['latitude'] == lat) & 
+        (tower_data['longitude'] == lon)
+    ]
+    outage_matches = outage_data[
+        (outage_data['center_latitude']-0.5 <= lat) &
+        (outage_data['center_longitude']-0.5 <= lon) &
+        (outage_data['center_latitude']+0.5 >= lat) &
+        (outage_data['center_longitude']+0.5 >= lon)
+    ]
     
-#     with col1:
-#         st.markdown("### 🗺️ Cell Tower Map")
-        
-#         # Create color mapping for status
-#         color_map = {'Active': '#28a745', 'Inactive': '#dc3545', 'Maintenance': '#ffc107'}
-#         df_towers['color'] = df_towers['status'].map(color_map)
-        
-#         # Streamlit map
-#         st.map(
-#             df_towers, 
-#             latitude="latitude", 
-#             longitude="longitude", 
-#             size="coverage_radius",
-#             color="color"
-#         )
-        
-#         # Show filtered towers count
-#         st.info(f"Showing {filtered_count} towers out of {total_count} total")
+    if not cell_tower_matches.empty:
+        cell_tower = cell_tower_matches.iloc[0]
+        st.session_state.selected_tower = cell_tower
+        st.session_state.selected_outage = None
     
-#     with col2:
-#         st.markdown("### 📊 Alert Statistics")
+    elif not outage_matches.empty:
+        outage = outage_matches.iloc[0]
+        st.session_state.selected_outage = outage
+        st.session_state.selected_tower = None
+
+with st.sidebar:
+    if st.session_state.selected_tower is not None:
+        cell_tower = st.session_state.selected_tower
+        st.markdown(f"### Cell Tower {cell_tower['tower_id']}")
+        with st.expander('Details', expanded=True):
+            st.write(f"**Status:** {cell_tower['status']}")
+            st.write(f"**Signal Strength:** {cell_tower['signal_strength']:.3f} dBm")
+            st.write(f"**Bandwidth:** {cell_tower['bandwidth']} MHz")
+            st.write(f"**Technology:** {cell_tower['technology']}")
+            st.write(f"**Lon:** {cell_tower['longitude']:.4f}")
+            st.write(f"**Lat:** {cell_tower['latitude']:.4f}")
         
-#         if alert_areas:
-#             # Alert type distribution
-#             alert_types = {}
-#             total_zones = 0
-            
-#             for area in alert_areas:
-#                 event_type = area['event']
-#                 zones_count = len(area.get('zone_circles', []))
-#                 alert_types[event_type] = alert_types.get(event_type, 0) + zones_count
-#                 total_zones += zones_count
-            
-#             # Create pie chart for alert types
-#             if alert_types:
-#                 fig_pie = px.pie(
-#                     values=list(alert_types.values()),
-#                     names=list(alert_types.keys()),
-#                     title="Alert Types by Zone Count"
-#                 )
-#                 fig_pie.update_layout(height=300, showlegend=True)
-#                 st.plotly_chart(fig_pie, use_container_width=True)
-            
-#             # Alert urgency/severity stats
-#             st.markdown("### 🎯 Alert Details")
-            
-#             severity_counts = {}
-#             urgency_counts = {}
-            
-#             for area in alert_areas:
-#                 severity = area.get('severity', 'Unknown')
-#                 urgency = area.get('urgency', 'Unknown')
-                
-#                 severity_counts[severity] = severity_counts.get(severity, 0) + 1
-#                 urgency_counts[urgency] = urgency_counts.get(urgency, 0) + 1
-            
-#             col_sev, col_urg = st.columns(2)
-            
-#             with col_sev:
-#                 st.markdown("**Severity**")
-#                 for severity, count in severity_counts.items():
-#                     emoji = "🔴" if severity in ['Extreme', 'Severe'] else "🟡" if severity == 'Moderate' else "🟢"
-#                     st.markdown(f"{emoji} {severity}: {count}")
-            
-#             with col_urg:
-#                 st.markdown("**Urgency**")
-#                 for urgency, count in urgency_counts.items():
-#                     emoji = "⚡" if urgency == 'Immediate' else "⏰" if urgency == 'Expected' else "📋"
-#                     st.markdown(f"{emoji} {urgency}: {count}")
-            
-#             # Show metrics
-#             st.metric("Total Alerts", len(alert_areas))
-#             st.metric("Total Zones Affected", total_zones)
-            
-#         else:
-#             st.info("No alert statistics available")
-            
-#             # Show a placeholder chart
-#             fig_placeholder = go.Figure()
-#             fig_placeholder.add_annotation(
-#                 text="No Active Alerts",
-#                 xref="paper", yref="paper",
-#                 x=0.5, y=0.5,
-#                 showarrow=False,
-#                 font=dict(size=20, color="gray")
-#             )
-#             fig_placeholder.update_layout(
-#                 height=300,
-#                 xaxis=dict(visible=False),
-#                 yaxis=dict(visible=False),
-#                 plot_bgcolor='rgba(0,0,0,0)'
-#             )
-#             st.plotly_chart(fig_placeholder, use_container_width=True)
+        if st.button("Generate Deployment Instructions", key="cell_instructions_btn"):
+            st.session_state.show_instructions_cell = True
+            st.session_state.show_instructions_outage = False
+            st.session_state.current_instruction_type = "cell"
+            # Clear messages when switching instruction types
+            st.session_state.messages = []
+            st.rerun()
 
-# else:
-#     st.warning("⚠️ No urgent weather areas data available or unable to connect to backend")
+    elif st.session_state.selected_outage is not None:
+        outage = st.session_state.selected_outage
+        st.markdown(f"### Predicted Outage")
+        with st.expander('Details', expanded=True):
+            st.write(f"**Event:** {outage['event']}")
+            st.write(f"**Severity:** {outage['severity']}")
+            st.write(f"**Lon:** {outage['center_longitude']:.4f}")
+            st.write(f"**Lat:** {outage['center_latitude']:.4f}")
+            st.write(f"**Radius:** {outage['radius']:.2f} km")
+        
+        if st.button("Generate Deployment Instructions", key="outage_instructions_btn"):
+            st.session_state.show_instructions_outage = True
+            st.session_state.show_instructions_cell = False
+            st.session_state.current_instruction_type = "outage"
+            # Clear messages when switching instruction types
+            st.session_state.messages = []
+            st.rerun()
 
-# # Remove the Performance metrics section since we're focusing on weather alerts only
-# # Performance metrics section removed - focusing on weather alerts
+# Function to render chat interface
+def render_chat_interface(instructions, instruction_type):
+    with st.container():
+        st.markdown("### Deployment Instructions")
+        st.write(instructions)
+        st.markdown("### Chat")
+        
+        # Display existing chat history
+        for message in st.session_state.messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+        
+        # Handle new user input - place input box at the end
+        user_input = st.chat_input("Ask me anything")
+        if user_input:
+            # Add user message to session state
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            
+            # Generate response
+            if instruction_type == "cell":
+                assistant_response = get_assistant_response_for_cell(user_input, st.session_state.selected_tower)
+            else:
+                assistant_response = get_assistant_response_for_outage(user_input, st.session_state.selected_outage)
+            
+            # Add assistant response to session state
+            st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+            
+            # Rerun to display the new messages
+            st.rerun()
 
-# # Remove detailed data table section since we're focusing on weather alerts
-# # Detailed data table section removed - focusing on weather alerts
+# Render appropriate chat interface based on current state
+if st.session_state.get('show_instructions_cell', False) and st.session_state.selected_tower is not None:
+    instructions = get_deployment_instructions_for_cell(st.session_state.selected_tower)
+    render_chat_interface(instructions, "cell")
 
-# # Alert system
-# st.markdown("### 🚨 System Alerts")
-# if alerts:
-#     for alert in alerts:
-#         if alert['type'] == 'success':
-#             st.success(f"{alert['icon']} {alert['message']}")
-#         elif alert['type'] == 'warning':
-#             st.warning(f"{alert['icon']} {alert['message']}")
-#         elif alert['type'] == 'info':
-#             st.info(f"{alert['icon']} {alert['message']}")
-#         else:
-#             st.error(f"{alert['icon']} {alert['message']}")
-# else:
-#     st.error("Unable to load system alerts")
+elif st.session_state.get('show_instructions_outage', False) and st.session_state.selected_outage is not None:
+    instructions = get_deployment_instructions_for_outage(st.session_state.selected_outage)
+    render_chat_interface(instructions, "outage")
 
-# # Footer
-# st.markdown("---")
-# st.markdown(
-#     f"Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} | "
-#     f"Data points: {filtered_count} towers | "
-#     f"Backend: {'🟢 Connected' if st.session_state.backend_connected else '🔴 Disconnected'}"
-# )
+

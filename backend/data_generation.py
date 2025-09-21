@@ -3,7 +3,7 @@ import numpy as np
 from numpy.random import default_rng as rng
 
 
-def generate_cell_tower_data(num_towers=100, lat_min=25.5, lon_min=-106.5, lat_max=35.5, lon_max=-93.5):
+def generate_cell_tower_data(num_towers=500, lat_min=25.5, lon_min=-106.5, lat_max=35.5, lon_max=-93.5):
     """Generate realistic cell tower data with various attributes"""
     rng_gen = rng(42)  # Fixed seed for consistency
     
@@ -14,7 +14,7 @@ def generate_cell_tower_data(num_towers=100, lat_min=25.5, lon_min=-106.5, lat_m
         'signal_strength': rng_gen.uniform(-120, -60, num_towers),  # dBm
         'bandwidth': rng_gen.choice([20, 40, 80, 100], num_towers),  # MHz
         'technology': rng_gen.choice(['4G LTE', '5G', '5G mmWave'], num_towers, p=[0.4, 0.5, 0.1]).tolist(),
-        'status': rng_gen.choice(['Active', 'Down'], num_towers, p=[0.8, 0.2]).tolist(),
+        'status': rng_gen.choice(['Active', 'Down'], num_towers, p=[0.95, 0.05]).tolist(),
         'coverage_radius': rng_gen.uniform(0.5, 5.0, num_towers),  # km
         'installation_date': [
             (datetime.now() - timedelta(days=int(rng_gen.uniform(30, 1095)))).isoformat()

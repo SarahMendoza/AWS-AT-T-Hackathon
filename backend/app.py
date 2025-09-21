@@ -31,6 +31,54 @@ def get_predicted_outages():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/instructions-cell', methods=['GET'])
+def get_instructions_for_cell():
+    try:
+        # TODO: find tower info in DB, give to agent, return response
+        tower_id = request.args.get('tower_id', default=None, type=str)
+        instructions_response = f"Here are the instructions for cell tower '{tower_id}'..."
+        
+        return jsonify({'success': True, 'data': instructions_response})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/instructions-outage', methods=['GET'])
+def get_instructions_for_outage():
+    try:
+        # TODO: find outage info in DB, give to agent, return response
+        outage_id = request.args.get('outage_id', default=None, type=str)
+        instructions_response = f"Here are the instructions for outage {outage_id}..."
+        
+        return jsonify({'success': True, 'data': instructions_response})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/assistant-cell', methods=['GET'])
+def get_assistant_response_for_cell():
+    try:
+        # TODO: find tower info in DB, give that and the input to agent, return response
+        user_input = request.args.get('user_input', default=None, type=str)
+        tower_id = request.args.get('tower_id', default=None, type=str)
+        assistant_response = f"Here is my response to '{user_input}' for tower {tower_id}..."
+        
+        return jsonify({'success': True, 'data': assistant_response})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/assistant-outage', methods=['GET'])
+def get_assistant_response_for_outage():
+    try:
+        # TODO: find tower info in DB, give that and the input to agent, return response
+        user_input = request.args.get('user_input', default=None, type=str)
+        outage_id = request.args.get('outage_id', default=None, type=str)
+        assistant_response = f"Here is my response to '{user_input}' for outage {outage_id}..."
+        
+        return jsonify({'success': True, 'data': assistant_response})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+
 
 
 if __name__ == '__main__':
