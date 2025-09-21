@@ -19,8 +19,8 @@ load_dotenv()
 dynamodb = boto3.resource(
     "dynamodb",
     region_name="us-east-1", # change region if needed
-    aws_access_key_id=os.getenv("AKIARXJG57PJSQJOAYNM"), # load from env variables
-    aws_secret_access_key=os.getenv("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")
+    aws_access_key_id=os.getenv(""), # load from env variables
+    aws_secret_access_key=os.getenv("")
 )
 
 cell_towers_table = dynamodb.Table("cell-towers")
