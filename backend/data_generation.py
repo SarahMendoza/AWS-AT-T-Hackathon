@@ -37,6 +37,7 @@ def generate_predicted_outages(n_areas=15, lat_min=25.5, lon_min=-106.5, lat_max
     rng_gen = rng(42)  # Fixed seed for consistency
     
     data = {
+        'outage_id': [f'Outage-{i}' for i in range(n_areas)],
         'center_latitude': rng_gen.uniform(lat_min, lat_max, n_areas),
         'center_longitude': rng_gen.uniform(lon_min, lon_max, n_areas),
         'radius': rng_gen.uniform(5.0, 50.0, n_areas),  # km
