@@ -5,6 +5,7 @@ from typing import List, Tuple, Dict, Any
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
     Calculate the great circle distance between two points on Earth in kilometers.
+    Uses the Haversine formula: https://en.wikipedia.org/wiki/Haversine_formula
     """
     R = 6371  # Earth's radius in kilometers
     
@@ -17,24 +18,24 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     dlon = lon2_rad - lon1_rad
     
     a = math.sin(dlat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon/2)**2
-    c = 2 * math.asin(math.sqrt(a))
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
     
     return R * c
 
 def n_towers_within_zone(lat, lon, radius, towers):
     # calculate the number of towers within the zone
     n_towers = 0
-    
-    # filter to only towers within +-1 deg lat/lon
-    towers = [t for t in towers if abs(float(t['latitude']) - lat) <= 1 and abs(float(t['longitude']) - lon) <= 1]
+    n_down_towers = 0
     
     # calculate the distance from the center of each tower to the center of the zone
     for tower in towers:
         distance = haversine_distance(lat, lon, float(tower['latitude']), float(tower['longitude']))
         if distance <= radius:
             n_towers += 1
+            if tower['status'] == 'Down':
+                n_down_towers += 1
     
-    return n_towers
+    return n_towers, n_down_towers
 
 # def polygon_to_circle(coordinates: List[List[List[float]]]) -> Dict[str, float]:
 #     """

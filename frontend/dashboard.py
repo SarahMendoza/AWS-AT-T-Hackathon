@@ -271,8 +271,8 @@ with st.sidebar:
         with st.expander('Details', expanded=True):
             st.write(f"**Event:** {outage['event']}")
             st.write(f"**Severity:** {outage['severity']}")
-            st.write(f"**# Towers:** {outage['towers_total']}")
-            st.write(f"**# Affected Towers:** {outage['towers_affected']}")
+            st.write(f"**Number of Total Towers:** {outage['towers_total']}")
+            st.write(f"**Number of Affected Towers:** {outage['towers_affected']}")
             st.write(f"**Lon:** {float(outage['center_longitude']):.4f}")
             st.write(f"**Lat:** {float(outage['center_latitude']):.4f}")
             st.write(f"**Radius:** {float(outage['radius']):.2f} km")
