@@ -81,7 +81,12 @@ def get_tower_data():
         if response.status_code == 200:
             data = response.json()
             if data['success']:
-                return pd.DataFrame(data['data'])
+                df = pd.DataFrame(data['data'])
+                df['latitude'] = df['latitude'].astype(float)
+                df['longitude'] = df['longitude'].astype(float)
+                df['signal_strength'] = df['signal_strength'].astype(float)
+                df['coverage_radius'] = df['coverage_radius'].astype(float)
+                return df
         return pd.DataFrame()
     except Exception as e:
         st.error(f"Error fetching tower data: {str(e)}")
@@ -94,7 +99,11 @@ def get_predicted_outage_data():
         if response.status_code == 200:
             data = response.json()
             if data['success']:
-                return pd.DataFrame(data['data'])
+                df = pd.DataFrame(data['data'])
+                df['center_latitude'] = df['center_latitude'].astype(float)
+                df['center_longitude'] = df['center_longitude'].astype(float)
+                df['radius'] = df['radius'].astype(float)
+                return df
         return pd.DataFrame()
     except Exception as e:
         st.error(f"Error fetching predicted outage data: {str(e)}")
@@ -244,11 +253,12 @@ with st.sidebar:
         st.markdown(f"### Cell Tower {cell_tower['tower_id']}")
         with st.expander('Details', expanded=True):
             st.write(f"**Status:** {cell_tower['status']}")
-            st.write(f"**Signal Strength:** {cell_tower['signal_strength']:.3f} dBm")
+            st.write(f"**Signal Strength:** {float(cell_tower['signal_strength']):.3f} dBm")
             st.write(f"**Bandwidth:** {cell_tower['bandwidth']} MHz")
             st.write(f"**Technology:** {cell_tower['technology']}")
-            st.write(f"**Lon:** {cell_tower['longitude']:.4f}")
-            st.write(f"**Lat:** {cell_tower['latitude']:.4f}")
+            st.write(f"**Coverage:** {float(cell_tower['coverage_radius'])} mi")
+            st.write(f"**Lon:** {float(cell_tower['longitude']):.4f}")
+            st.write(f"**Lat:** {float(cell_tower['latitude']):.4f}")
         
         if st.button("Generate Deployment Notes", key="show_notes_btn"):
             st.session_state.show_notes = True
@@ -257,15 +267,15 @@ with st.sidebar:
 
     elif st.session_state.selected_outage is not None:
         outage = st.session_state.selected_outage
-        st.markdown(f"### Predicted Outage")
+        st.markdown(f"### {outage['outage_id']}")
         with st.expander('Details', expanded=True):
             st.write(f"**Event:** {outage['event']}")
             st.write(f"**Severity:** {outage['severity']}")
-            st.write(f"**Number of Towers:** {0}") # TODO
-            st.write(f"**Number of Affected Towers:** {0}") # TODO
-            st.write(f"**Lon:** {outage['center_longitude']:.4f}")
-            st.write(f"**Lat:** {outage['center_latitude']:.4f}")
-            st.write(f"**Radius:** {outage['radius']:.2f} km")
+            st.write(f"**# Towers:** {outage['towers_total']}")
+            st.write(f"**# Affected Towers:** {outage['towers_affected']}")
+            st.write(f"**Lon:** {float(outage['center_longitude']):.4f}")
+            st.write(f"**Lat:** {float(outage['center_latitude']):.4f}")
+            st.write(f"**Radius:** {float(outage['radius']):.2f} km")
 
 # Function to render chat interface
 def render_chat_interface(notes):
