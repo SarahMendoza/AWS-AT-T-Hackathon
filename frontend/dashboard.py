@@ -101,37 +101,36 @@ def get_predicted_outage_data():
         return pd.DataFrame()
 
 @st.cache_data(ttl=300)
-def get_deployment_instructions_for_cell(cell_tower):
+def get_deployment_notes(cell_tower):
     try:
-        response = requests.get(f"{BACKEND_URL}/api/instructions-cell", params={'tower_id': cell_tower['tower_id']}, timeout=10)
+        response = requests.get(f"{BACKEND_URL}/api/deployment-notes", params={'tower_id': cell_tower['tower_id']}, timeout=10)
         if response.status_code == 200:
             data = response.json()
             if data['success']:
                 return data['data']
         return pd.DataFrame()
     except Exception as e:
-        st.error(f"Error fetching deployment instructions: {str(e)}")
+        st.error(f"Error fetching deployment notes: {str(e)}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=300)
-def get_deployment_instructions_for_outage(outage):
-    try:
-        # TODO: fix parameters with some way to identify the outage
-        response = requests.get(f"{BACKEND_URL}/api/instructions-outage", params={'outage_id': 0}, timeout=10)
-        if response.status_code == 200:
-            data = response.json()
-            if data['success']:
-                return data['data']
-        return pd.DataFrame()
-    except Exception as e:
-        st.error(f"Error fetching deployment instructions: {str(e)}")
-        return pd.DataFrame()
+# @st.cache_data(ttl=300)
+# def get_deployment_instructions_for_outage(outage):
+#     try:
+#         response = requests.get(f"{BACKEND_URL}/api/instructions-outage", params={'outage_id': 0}, timeout=10)
+#         if response.status_code == 200:
+#             data = response.json()
+#             if data['success']:
+#                 return data['data']
+#         return pd.DataFrame()
+#     except Exception as e:
+#         st.error(f"Error fetching deployment instructions: {str(e)}")
+#         return pd.DataFrame()
 
 @st.cache_data(ttl=300)
-def get_assistant_response_for_cell(user_input, cell_tower):
+def get_assistant_response(user_input, cell_tower):
     try:
         response = requests.get(
-            f"{BACKEND_URL}/api/assistant-cell", 
+            f"{BACKEND_URL}/api/assistant", 
             params={
                 'user_input': user_input, 
                 'tower_id': cell_tower['tower_id']
@@ -147,26 +146,25 @@ def get_assistant_response_for_cell(user_input, cell_tower):
         st.error(f"Error fetching assistant response: {str(e)}")
         return pd.DataFrame()
 
-@st.cache_data(ttl=300)
-def get_assistant_response_for_outage(user_input, outage):
-    try:
-        # TODO: fix parameters with some way to identify the outage
-        response = requests.get(
-            f"{BACKEND_URL}/api/assistant-outage", 
-            params={
-                'user_input': user_input, 
-                'outage_id': 0
-            }, 
-            timeout=10
-        )
-        if response.status_code == 200:
-            data = response.json()
-            if data['success']:
-                return data['data']
-        return pd.DataFrame()
-    except Exception as e:
-        st.error(f"Error fetching assistant response: {str(e)}")
-        return pd.DataFrame()
+# @st.cache_data(ttl=300)
+# def get_assistant_response_for_outage(user_input, outage):
+#     try:
+#         response = requests.get(
+#             f"{BACKEND_URL}/api/assistant-outage", 
+#             params={
+#                 'user_input': user_input, 
+#                 'outage_id': 0
+#             }, 
+#             timeout=10
+#         )
+#         if response.status_code == 200:
+#             data = response.json()
+#             if data['success']:
+#                 return data['data']
+#         return pd.DataFrame()
+#     except Exception as e:
+#         st.error(f"Error fetching assistant response: {str(e)}")
+#         return pd.DataFrame()
 
 # Initialize session state
 if 'backend_connected' not in st.session_state:
@@ -184,14 +182,8 @@ if 'chat_area' not in st.session_state:
 if 'messages' not in st.session_state:
     st.session_state.messages = []
 
-if 'current_instruction_type' not in st.session_state:
-    st.session_state.current_instruction_type = None
-
-if 'show_instructions_cell' not in st.session_state:
-    st.session_state.show_instructions_cell = False
-
-if 'show_instructions_outage' not in st.session_state:
-    st.session_state.show_instructions_outage = False
+if 'show_notes' not in st.session_state:
+    st.session_state.show_notes = False
 
 # Check backend connection
 backend_healthy = check_backend_health()
@@ -258,11 +250,8 @@ with st.sidebar:
             st.write(f"**Lon:** {cell_tower['longitude']:.4f}")
             st.write(f"**Lat:** {cell_tower['latitude']:.4f}")
         
-        if st.button("Generate Deployment Instructions", key="cell_instructions_btn"):
-            st.session_state.show_instructions_cell = True
-            st.session_state.show_instructions_outage = False
-            st.session_state.current_instruction_type = "cell"
-            # Clear messages when switching instruction types
+        if st.button("Generate Deployment Notes", key="show_notes_btn"):
+            st.session_state.show_notes = True
             st.session_state.messages = []
             st.rerun()
 
@@ -272,23 +261,17 @@ with st.sidebar:
         with st.expander('Details', expanded=True):
             st.write(f"**Event:** {outage['event']}")
             st.write(f"**Severity:** {outage['severity']}")
+            st.write(f"**Number of Towers:** {0}") # TODO
+            st.write(f"**Number of Affected Towers:** {0}") # TODO
             st.write(f"**Lon:** {outage['center_longitude']:.4f}")
             st.write(f"**Lat:** {outage['center_latitude']:.4f}")
             st.write(f"**Radius:** {outage['radius']:.2f} km")
-        
-        if st.button("Generate Deployment Instructions", key="outage_instructions_btn"):
-            st.session_state.show_instructions_outage = True
-            st.session_state.show_instructions_cell = False
-            st.session_state.current_instruction_type = "outage"
-            # Clear messages when switching instruction types
-            st.session_state.messages = []
-            st.rerun()
 
 # Function to render chat interface
-def render_chat_interface(instructions, instruction_type):
+def render_chat_interface(notes):
     with st.container():
-        st.markdown("### Deployment Instructions")
-        st.write(instructions)
+        st.markdown("### Deployment Notes")
+        st.write(notes)
         st.markdown("### Chat")
         
         # Display existing chat history
@@ -303,10 +286,7 @@ def render_chat_interface(instructions, instruction_type):
             st.session_state.messages.append({"role": "user", "content": user_input})
             
             # Generate response
-            if instruction_type == "cell":
-                assistant_response = get_assistant_response_for_cell(user_input, st.session_state.selected_tower)
-            else:
-                assistant_response = get_assistant_response_for_outage(user_input, st.session_state.selected_outage)
+            assistant_response = get_assistant_response(user_input, st.session_state.selected_tower)
             
             # Add assistant response to session state
             st.session_state.messages.append({"role": "assistant", "content": assistant_response})
@@ -315,12 +295,9 @@ def render_chat_interface(instructions, instruction_type):
             st.rerun()
 
 # Render appropriate chat interface based on current state
-if st.session_state.get('show_instructions_cell', False) and st.session_state.selected_tower is not None:
-    instructions = get_deployment_instructions_for_cell(st.session_state.selected_tower)
-    render_chat_interface(instructions, "cell")
+if st.session_state.get('show_notes', False) and st.session_state.selected_tower is not None:
+    notes = get_deployment_notes(st.session_state.selected_tower)
+    render_chat_interface(notes)
 
-elif st.session_state.get('show_instructions_outage', False) and st.session_state.selected_outage is not None:
-    instructions = get_deployment_instructions_for_outage(st.session_state.selected_outage)
-    render_chat_interface(instructions, "outage")
 
 
