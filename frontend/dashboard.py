@@ -117,10 +117,10 @@ def get_deployment_notes(cell_tower):
             data = response.json()
             if data['success']:
                 return data['data']
-        return pd.DataFrame()
+        return ""
     except Exception as e:
         st.error(f"Error fetching deployment notes: {str(e)}")
-        return pd.DataFrame()
+        return ""
 
 # @st.cache_data(ttl=300)
 # def get_deployment_instructions_for_outage(outage):
@@ -136,24 +136,21 @@ def get_deployment_notes(cell_tower):
 #         return pd.DataFrame()
 
 @st.cache_data(ttl=300)
-def get_assistant_response(user_input, cell_tower):
+def get_assistant_response(user_input):
     try:
         response = requests.get(
             f"{BACKEND_URL}/api/assistant", 
-            params={
-                'user_input': user_input, 
-                'tower_id': cell_tower['tower_id']
-            }, 
-            timeout=10
+            params={'user_input': user_input}, 
+            timeout=30
         )
         if response.status_code == 200:
             data = response.json()
             if data['success']:
                 return data['data']
-        return pd.DataFrame()
+        return ''
     except Exception as e:
         st.error(f"Error fetching assistant response: {str(e)}")
-        return pd.DataFrame()
+        return ''
 
 # @st.cache_data(ttl=300)
 # def get_assistant_response_for_outage(user_input, outage):
@@ -253,10 +250,10 @@ with st.sidebar:
         st.markdown(f"### Cell Tower {cell_tower['tower_id']}")
         with st.expander('Details', expanded=True):
             st.write(f"**Status:** {cell_tower['status']}")
-            st.write(f"**Signal Strength:** {float(cell_tower['signal_strength']):.3f} dBm")
+            st.write(f"**RSRP:** {float(cell_tower['signal_strength']):.2f} dBm")
             st.write(f"**Bandwidth:** {cell_tower['bandwidth']} MHz")
             st.write(f"**Technology:** {cell_tower['technology']}")
-            st.write(f"**Coverage:** {float(cell_tower['coverage_radius'])} mi")
+            st.write(f"**Coverage:** {float(cell_tower['coverage_radius']):.2f} mi")
             st.write(f"**Lon:** {float(cell_tower['longitude']):.4f}")
             st.write(f"**Lat:** {float(cell_tower['latitude']):.4f}")
         
@@ -296,7 +293,7 @@ def render_chat_interface(notes):
             st.session_state.messages.append({"role": "user", "content": user_input})
             
             # Generate response
-            assistant_response = get_assistant_response(user_input, st.session_state.selected_tower)
+            assistant_response = get_assistant_response(user_input)
             
             # Add assistant response to session state
             st.session_state.messages.append({"role": "assistant", "content": assistant_response})

@@ -23,10 +23,10 @@ def create_folium_map(tower_data, outage_data):
         popup_text = ""
         popup_text += f"<strong>Tower ID:</strong> {row['tower_id']}<br>"
         popup_text += f"<strong>Status:</strong> {row['status']}<br>"
-        popup_text += f"<strong>Signal Strength:</strong> {float(row['signal_strength']):.3f} dBm<br>"
+        popup_text += f"<strong>RSRP:</strong> {float(row['signal_strength']):.2f} dBm<br>"
         popup_text += f"<strong>Bandwidth:</strong> {row['bandwidth']} MHz<br>"
         popup_text += f"<strong>Technology:</strong> {row['technology']}<br>"
-        popup_text += f"<strong>Coverage:</strong> {row['coverage_radius']} mi<br>"
+        popup_text += f"<strong>Coverage:</strong> {float(row['coverage_radius']):.2f} mi<br>"
         popup_text += f"<strong>Lon:</strong> {float(row['longitude']):.4f}<br>"
         popup_text += f"<strong>Lat:</strong> {float(row['latitude']):.4f}<br>"
         

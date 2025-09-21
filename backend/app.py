@@ -7,30 +7,39 @@ from datetime import datetime, timedelta
 import time
 from data_generation import generate_cell_tower_data, generate_predicted_outages
 import uuid
-from utils import n_towers_within_zone
 from dotenv import load_dotenv
+import logging
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
+
+app.logger.setLevel(logging.DEBUG)
 
 load_dotenv()
 
 # --- AWS DynamoDB setup ---
 dynamodb = boto3.resource(
     "dynamodb",
-    region_name="us-east-1", # change region if needed
-    aws_access_key_id=os.getenv(""), # load from env variables
-    aws_secret_access_key=os.getenv("")
+    region_name="us-east-1",
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
 )
 
 cell_towers_table = dynamodb.Table("cell-towers")
 outages_table = dynamodb.Table("outages")
 
-bedrock_agent_runtime_client = boto3.client('bedrock-agent-runtime', region_name='us-east-1')
+bedrock_agent_runtime_client = boto3.client(
+    'bedrock-agent-runtime', 
+    region_name='us-east-1',
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
+)
 
-# Define the parameters for invoking the agent
-chatbot_id = "GHZTFEK4B4"  # Replace with your agent ID
-chatbot_alias_id = "WBJRP03YGP"  # Replace with your agent alias ID
+chatbot_id = os.getenv("CHATBOT_ID")
+chatbot_alias_id = os.getenv("CHATBOT_ALIAS_ID")
+
+notes_agent_id = os.getenv("NOTES_AGENT_ID")
+notes_agent_alias_id = os.getenv("NOTES_AGENT_ALIAS_ID")
 
 
 # API Routes
@@ -65,42 +74,69 @@ def get_predicted_outages():
 @app.route('/api/deployment-notes', methods=['GET'])
 def get_deployment_notes():
     try:
-        # TODO: find tower info in DB, give to agent, return response
         tower_id = request.args.get('tower_id', default=None, type=str)
-        notes_response = f"Here are the notes for cell tower '{tower_id}'..."
+        session_id = str(uuid.uuid4())
+        prompt_text = f"tower_id: {tower_id}"
         
-        return jsonify({'success': True, 'data': notes_response})
+        agent_response = bedrock_agent_runtime_client.invoke_agent(
+            agentId=notes_agent_id,
+            agentAliasId=notes_agent_alias_id,
+            sessionId=session_id,
+            inputText=prompt_text
+        )
+        app.logger.info(agent_response)
+
+        output_text = ""
+        event_stream = agent_response.get('completion', [])
+        
+        for event in event_stream:
+            app.logger.debug(f"Event type: {type(event)}, Event: {event}")
+            
+            if 'chunk' in event:
+                chunk = event['chunk']
+                if 'bytes' in chunk:
+                    chunk_text = chunk['bytes'].decode('utf-8')
+                    output_text += chunk_text
+                    app.logger.info(f"Chunk: {chunk_text}")
+            elif 'trace' in event:
+                # Handle trace events for debugging
+                app.logger.info(f"Trace: {event['trace']}")
+            elif 'returnControl' in event:
+                # Handle return control events
+                app.logger.info(f"Return control: {event['returnControl']}")
+        
+        app.logger.info(f"Final output: {output_text}")
+        return jsonify({'success': True, 'data': output_text})
+
+        return jsonify({'success': True, 'data': output_text})
     except Exception as e:
+        app.logger.error(e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-@app.route('/api/assistant', methods=['POST'])
+@app.route('/api/assistant', methods=['GET'])
 def get_assistant_response():
     try:
-        data = request.get_json()
-        # TODO: find tower info in DB, give that and the input to agent, return response
-        user_input = data["user_input"]#.get('user_input', default=None, type=str)
-        tower_id = data["tower_id"]#.get('tower_id', default=None, type=str)
-        #assistant_response = f"Here is my response to '{user_input}' for tower {tower_id}..."
-        print("User input:", user_input)
-        print("Tower ID:", tower_id)
+        user_input = request.args.get('user_input', default=None, type=str)
         session_id = str(uuid.uuid4())
-        prompt = f"User input: {user_input}\nTower info: {tower_id}"
-
-        agent_response = client.invoke_agent(
+        
+        agent_response = bedrock_agent_runtime_client.invoke_agent(
             agentId=chatbot_id,
             agentAliasId=chatbot_alias_id,
             sessionId=session_id,
-            inputText=prompt
+            inputText=user_input
         )
+        app.logger.info(agent_response)
 
         output_text = ""
         for event in agent_response["completion"]:
             if "chunk" in event:
                 output_text += event["chunk"]["bytes"].decode('utf-8')
+        app.logger.info(output_text)
 
         return jsonify({'success': True, 'data': output_text})
     except Exception as e:
+        app.logger.error(e)
         return jsonify({'success': False, 'error': str(e)}), 500
 
 

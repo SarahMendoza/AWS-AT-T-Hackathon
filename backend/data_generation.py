@@ -11,10 +11,10 @@ def generate_cell_tower_data(num_towers=500, lat_min=25.5, lon_min=-106.5, lat_m
         'tower_id': [f'FN-{1000 + i}' for i in range(num_towers)],
         'latitude': rng_gen.uniform(lat_min, lat_max, num_towers),
         'longitude': rng_gen.uniform(lon_min, lon_max, num_towers),
-        'signal_strength': rng_gen.uniform(-120, -60, num_towers),  # dBm
+        'signal_strength': rng_gen.uniform(-115, -60, num_towers),  # dBm
         'bandwidth': rng_gen.choice([20, 40, 80, 100], num_towers),  # MHz
         'technology': rng_gen.choice(['4G LTE', '5G', '5G mmWave'], num_towers, p=[0.4, 0.5, 0.1]).tolist(),
-        'status': rng_gen.choice(['Active', 'Down'], num_towers, p=[0.97, 0.03]).tolist(),
+        # 'status': rng_gen.choice(['Active', 'Down'], num_towers, p=[0.97, 0.03]).tolist(),
         'coverage_radius': rng_gen.uniform(0.5, 5.0, num_towers),  # km
         'installation_date': [
             (datetime.now() - timedelta(days=int(rng_gen.uniform(30, 1095)))).isoformat()
@@ -24,6 +24,14 @@ def generate_cell_tower_data(num_towers=500, lat_min=25.5, lon_min=-106.5, lat_m
         'connected_devices': rng_gen.poisson(500, num_towers).tolist(),
         'uptime_percentage': rng_gen.uniform(95, 100, num_towers)
     }
+    
+    statuses = []
+    for rsrp in data['signal_strength']:
+        if rsrp > -110:
+            statuses.append('Active')
+        else:
+            statuses.append('Down')
+    data['status'] = statuses
     
     # Convert numpy arrays to lists for JSON serialization
     for key, value in data.items():
